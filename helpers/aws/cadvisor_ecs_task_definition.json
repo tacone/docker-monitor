@@ -2,7 +2,7 @@
     "family": "cadvisor",
     "containerDefinitions": [
         {
-            "name": "cadvisor",
+            "name": "monitor-cadvisor",
             "image": "google/cadvisor",
             "cpu": 10,
             "memory": 300,

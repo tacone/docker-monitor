@@ -1,6 +1,6 @@
 :9090 {
     basicauth / {$ADMIN_USER} {$ADMIN_PASSWORD}
-    proxy / prometheus:9090 {
+    proxy / monitor-prometheus:9090 {
             transparent
         }
 
@@ -10,7 +10,7 @@
 
 :9093 {
     basicauth / {$ADMIN_USER} {$ADMIN_PASSWORD}
-    proxy / alertmanager:9093 {
+    proxy / monitor-alertmanager:9093 {
             transparent
         }
 
@@ -20,7 +20,7 @@
 
 :9091 {
     basicauth / {$ADMIN_USER} {$ADMIN_PASSWORD}
-    proxy / pushgateway:9091 {
+    proxy / monitor-pushgateway:9091 {
             transparent
         }
 
@@ -29,7 +29,7 @@
 }
 
 :3000 {
-    proxy / grafana:3000 {
+    proxy / monitor-grafana:3000 {
             transparent
             websocket
         }

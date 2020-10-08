@@ -1,4 +1,6 @@
-version: '2.1'
+version: '3.4'
+
+# cloned from: https://github.com/stefanprodan/dockprom
 
 networks:
   monitor-net:
@@ -10,9 +12,8 @@ volumes:
 
 services:
 
-  prometheus:
+  monitor-prometheus:
     image: prom/prometheus:v2.21.0
-    container_name: prometheus
     volumes:
       - ./prometheus:/etc/prometheus
       - prometheus_data:/prometheus
@@ -31,9 +32,8 @@ services:
     labels:
       org.label-schema.group: "monitoring"
 
-  alertmanager:
+  monitor-alertmanager:
     image: prom/alertmanager:v0.21.0
-    container_name: alertmanager
     volumes:
       - ./alertmanager:/etc/alertmanager
     command:
@@ -47,9 +47,8 @@ services:
     labels:
       org.label-schema.group: "monitoring"
 
-  nodeexporter:
+  monitor-nodeexporter:
     image: prom/node-exporter:v1.0.1
-    container_name: nodeexporter
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -67,15 +66,14 @@ services:
     labels:
       org.label-schema.group: "monitoring"
 
-  cadvisor:
+  monitor-cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.37.0
-    container_name: cadvisor
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker:/var/lib/docker:ro
-      #- /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
+      - /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
     restart: unless-stopped
     expose:
       - 8080
@@ -84,15 +82,14 @@ services:
     labels:
       org.label-schema.group: "monitoring"
 
-  grafana:
+  monitor-grafana:
     image: grafana/grafana:7.2.0
-    container_name: grafana
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     environment:
-      - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_USER=${MONITOR_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${MONITOR_ADMIN_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
     restart: unless-stopped
     expose:
@@ -102,9 +99,8 @@ services:
     labels:
       org.label-schema.group: "monitoring"
 
-  pushgateway:
+  monitor-pushgateway:
     image: prom/pushgateway:v1.2.0
-    container_name: pushgateway
     restart: unless-stopped
     expose:
       - 9091
@@ -113,19 +109,19 @@ services:
     labels:
       org.label-schema.group: "monitoring"
 
-  caddy:
+  monitor-caddy:
     image: stefanprodan/caddy
-    container_name: caddy
+    env_file: ../../.env
     ports:
-      - "3000:3000"
+      - "${MONITOR_PORT:-7050}:3000"
       - "9090:9090"
       - "9093:9093"
       - "9091:9091"
     volumes:
       - ./caddy:/etc/caddy
     environment:
-      - ADMIN_USER=${ADMIN_USER:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - ADMIN_USER=${MONITOR_ADMIN_USER:-admin}
+      - ADMIN_PASSWORD=${MONITOR_ADMIN_PASSWORD:-admin}
     restart: unless-stopped
     networks:
       - monitor-net
